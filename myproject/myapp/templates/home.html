@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+{% extends 'base_generic.html' %}
+
+{% block content %}
+  <h1>Welcome to Course Selection Platform</h1>
+
+  <form method="POST">
+    {% csrf_token %}
+
+    <div style="display: flex; align-items: center;">
+      <label for="major">Select Major:</label>
+      <select name="major" id="major">
+        {% for major in majors %}
+          <option value="{{ major }}" {% if selected_major == major %}selected{% endif %}>{{ major }}</option>
+        {% endfor %}
+      </select>
+      <input type="submit" value="Submit">
+    </div>
+
+    {% if scraped_data %}
+      {% for section, content in scraped_data.items %}
+        <h2>{{ section }}</h2>
+        {% if section == "Computer Science Breadth Requirement" %}
+          {% for area, details in content.items %}
+            <h3>{{ area }} - {{ details.requirement }}</h3>
+            <table>
+              <tr>
+                <th>Select</th>
+                <th>Course</th>
+                <th>Credit Hours</th>
+              </tr>
+              {% for course in details.courses %}
+                <tr>
+                  <td><input type="checkbox" name="course_{{ course.code }}"></td>
+                  <td>{{ course.code }} - {{ course.name }}</td>
+                  <td>{{ course.hours }}</td>
+                </tr>
+              {% endfor %}
+            </table>
+          {% endfor %}
+        {% else %}
+          <table>
+            <tr>
+              <th>Select</th>
+              <th>Course</th>
+              <th>Credit Hours</th>
+            </tr>
+            {% for course in content %}
+              <tr>
+                <td><input type="checkbox" name="course_{{ course.code }}"></td>
+                <td>{{ course.code }} - {{ course.name }}</td>
+                <td>{{ course.hours }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </form>
+
+{% endblock %}
+
+</body>
+</html>

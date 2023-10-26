@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Information</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+
+    <div id="menu">
+        <label for="majorSelect">Select Major:</label>
+        <select id="majorSelect" onchange="fetchData()">
+            <option value="" disabled selected>Please select a major</option>
+            <option value="computer_science">Computer Science</option>
+            <option value="mechanical_aerospace_engineering">Mechanical Aerospace Engineering</option>
+        </select>
+    </div>
+
+    <div id="content">
+        <!-- Course information will be dynamically populated here using JavaScript -->
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
