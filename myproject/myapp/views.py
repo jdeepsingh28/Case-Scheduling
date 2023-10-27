@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from .scraping import scrape_course_data
+from .forms import CreateAccountForm
 
 def login_view(request):
     if request.method == "POST":
@@ -47,3 +48,14 @@ def get_major_info(major):
         return "Information related to Major 1"
     elif major == "major2":
         return "Information related to Major 2"
+
+
+def create_account_view(request):
+    if request.method == 'POST':
+        form = CreateAccountForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')  # Redirect to the login page or any other page you prefer
+    else:
+        form = CreateAccountForm()
+    return render(request, 'createnewaccount.html', {'form': form})
