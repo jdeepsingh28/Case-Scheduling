@@ -3,13 +3,25 @@
 <head>
     <title>Login</title>
 </head>
-<body>
+<body style="text-align: center">
+    <h1>
+        CWRU Scheduling Planner
+    </h1>
+    <img src= "https://dailymedia.case.edu/wp-content/uploads/2012/04/18143312/spartan-logo-2color.png" alt="Case Logo" Class="App Logo" />
+    <p>
+        Enter Login Information
+    </p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Login</button>
+    </form>
 
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Login</button>
-</form>
+    <form method="post">
+        {% load admin_urls %}
+        <a href="{% url 'createnewaccount' %}">Create New Account</a>
+    </form>
+
 
 </body>
 </html>
