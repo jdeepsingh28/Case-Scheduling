@@ -40,4 +40,3 @@ class LoginTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         # Check that the user is redirected to the home page
         self.assertRedirects(response, self.home_url)
-
