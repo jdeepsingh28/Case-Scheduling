@@ -3,66 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <style>
+        .course-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        .course-table thead tr {
+            background-color: #f2f2f2;
+        }
+
+        .course-table th, .course-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .interest-selection {
+            display: flex;
+            align-items: center;
+        }
+
+        .interest-selection input {
+            margin-right: 5px;
+        }
+    </style>
 </head>
 <body>
 
 {% extends 'base_generic.html' %}
 
 {% block content %}
-  <h1>Welcome to Course Selection Platform</h1>
+  <h1 style="text-align:center; margin-bottom: 30px;">Welcome to Course Selection Platform</h1>
 
-  <form method="POST">
+  <form method="POST" style="margin-bottom: 30px;">
     {% csrf_token %}
 
-    <div style="display: flex; align-items: center;">
-      <label for="major">Select Major:</label>
-      <select name="major" id="major">
+    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+      <label for="major" style="margin-right: 10px;">Select Major:</label>
+      <select name="major" id="major" style="margin-right: 20px;">
         {% for major in majors %}
           <option value="{{ major }}" {% if selected_major == major %}selected{% endif %}>{{ major }}</option>
         {% endfor %}
       </select>
-      <input type="submit" value="Submit">
+      <input type="submit" value="Submit" style="padding: 5px 10px;">
     </div>
 
-    {% if scraped_data %}
-      {% for section, content in scraped_data.items %}
-        <h2>{{ section }}</h2>
-        {% if section == "Computer Science Breadth Requirement" %}
-          {% for area, details in content.items %}
-            <h3>{{ area }} - {{ details.requirement }}</h3>
-            <table>
-              <tr>
-                <th>Select</th>
-                <th>Course</th>
-                <th>Credit Hours</th>
-              </tr>
-              {% for course in details.courses %}
+    <!-- Displaying Core Requirements -->
+    {% if core_requirements %}
+        <h2>Computer Science Core Requirement</h2>
+        <table class="course-table">
+            <thead>
                 <tr>
-                  <td><input type="checkbox" name="course_{{ course.code }}"></td>
-                  <td>{{ course.code }} - {{ course.name }}</td>
-                  <td>{{ course.hours }}</td>
+                    <th>Course</th>
+                    <th>Credit Hours</th>
                 </tr>
-              {% endfor %}
-            </table>
-          {% endfor %}
-        {% else %}
-          <table>
-            <tr>
-              <th>Select</th>
-              <th>Course</th>
-              <th>Credit Hours</th>
-            </tr>
-            {% for course in content %}
-              <tr>
-                <td><input type="checkbox" name="course_{{ course.code }}"></td>
-                <td>{{ course.code }} - {{ course.name }}</td>
-                <td>{{ course.hours }}</td>
-              </tr>
-            {% endfor %}
-          </table>
-        {% endif %}
-      {% endfor %}
+            </thead>
+            <tbody>
+                {% for course in core_requirements %}
+                    <tr>
+                        <td>{{ course.code }} - {{ course.name }}</td>
+                        <td>{{ course.hours }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
+
+    <!-- Displaying Breadth Requirements -->
+    {% if breadth_requirements %}
+        {% for breadth_area, courses in breadth_requirements.items %}
+            <h2>{{ breadth_area }} - Requirement: {{ courses.0.requirement }}</h2>
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Interest</th>
+                        <th>Course</th>
+                        <th>Credit Hours</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                        <tr>
+                            <td class="interest-selection">
+                                <input type="radio" name="interest_{{ course.code }}" value="interested"> Interested
+                                <input type="radio" name="interest_{{ course.code }}" value="neutral"> Neutral
+                                <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
+                            </td>
+                            <td>{{ course.code }} - {{ course.name }}</td>
+                            <td>{{ course.hours }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Displaying Other Sections -->
+      {% if scraped_data %}
+        {% for section, content in scraped_data.items %}
+            {% if section != "Computer Science Core Requirement" and section != "Computer Science Breadth Requirement" %}
+                <h2 style="text-align:left; margin-bottom: 20px;">{{ section }}</h2>
+                <table class="course-table">
+                    <thead>
+                        <tr>
+                            <th>Interest</th>
+                            <th>Course</th>
+                            <th>Credit Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in content %}
+                            {% if course.code and course.name %}
+                                <tr>
+                                    <td class="interest-selection">
+                                        <input type="radio" name="interest_{{ course.code }}" value="interested"> Interested
+                                        <input type="radio" name="interest_{{ course.code }}" value="neutral"> Neutral
+                                        <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
+                                    </td>
+                                    <td>{{ course.code }} - {{ course.name }}</td>
+                                    <td>{{ course.hours }}</td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        {% endfor %}
+      {% endif %}
+
   </form>
 
 {% endblock %}

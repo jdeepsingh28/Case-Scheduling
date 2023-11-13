@@ -6,6 +6,8 @@ from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from .scraping import scrape_course_data
 from .forms import CreateAccountForm
+from .breadth_reformat import reformat_breadth_requirements
+from collections import defaultdict
 
 def login_view(request):
     if request.method == "POST":
@@ -22,6 +24,8 @@ def login_view(request):
 @login_required
 def home_view(request):
     scraped_data = None
+    core_requirements = None
+    breadth_requirements = None
 
     # Define the majors and corresponding URLs
     major_urls = {
@@ -34,20 +38,24 @@ def home_view(request):
         url = major_urls.get(selected_major)
         if url:
             scraped_data = scrape_course_data(url)
-            print(scraped_data)  # Printing the scraped data to console
+            core_requirements = scraped_data.get('Computer Science Core Requirement', [])
+            breadth_requirements = defaultdict(list)
+            for item in scraped_data.get('Computer Science Breadth Requirement', []):
+                for breadth_area, details in item.items():
+                    for course in details['courses']:
+                        course['breadth_area'] = breadth_area
+                        course['requirement'] = f"Number of classes needed: {details['requirement']}"
+                        breadth_requirements[breadth_area].append(course)
+
+            # Convert defaultdict to regular dict for template
+            breadth_requirements = dict(breadth_requirements)
 
     return render(request, 'home.html', {
         'majors': major_urls.keys(),
-        'scraped_data': scraped_data
+        'scraped_data': scraped_data,
+        'core_requirements': core_requirements,
+        'breadth_requirements': breadth_requirements
     })
-
-
-def get_major_info(major):
-    # Your logic to get and return major-related information
-    if major == "major1":
-        return "Information related to Major 1"
-    elif major == "major2":
-        return "Information related to Major 2"
 
 
 def create_account_view(request):
