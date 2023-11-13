@@ -67,7 +67,5 @@ if __name__ == '__main__':
     # Replace 'example_url' with the URL of the page you want to scrape
     example_url = 'https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext'
     result = scrape_course_data(example_url)
-
-    # Display the structured data
     print(json.dumps(result, indent=4))
 

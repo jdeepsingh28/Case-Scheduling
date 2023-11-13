@@ -61,3 +61,5 @@ def scrape_course_data(url):
                     result_dict[current_section].append(course_data)
 
     return dict(result_dict)
+
+
