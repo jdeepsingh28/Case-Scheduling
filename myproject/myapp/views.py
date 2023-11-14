@@ -67,3 +67,18 @@ def create_account_view(request):
     else:
         form = CreateAccountForm()
     return render(request, 'createnewaccount.html', {'form': form})
+
+
+def schedule_view(request):
+    if request.method == 'POST':
+        # Process form data
+        interest_data = {}  # Dictionary to store selected courses and interest levels
+
+        for key, value in request.POST.items():
+            if 'interest_' in key:
+                course_code = key.split('_')[1]
+                interest_data[course_code] = value
+
+        # Pass selected_courses to your template
+        return render(request, 'schedule_page.html', {'selected_courses': interest_data})
+    return redirect('home')  # Redirect to home page if not a POST request
