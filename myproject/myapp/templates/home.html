@@ -63,6 +63,7 @@
                     <tr>
                         <th>Course</th>
                         <th>Credit Hours</th>
+                        <th>Taken</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -70,6 +71,9 @@
                         <tr>
                             <td>{{ course.code }} - {{ course.name }}</td>
                             <td>{{ course.hours }}</td>
+                            <td>
+                                <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> <!-- New checkbox -->
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -86,6 +90,7 @@
                             <th>Interest</th>
                             <th>Course</th>
                             <th>Credit Hours</th>
+                            <th>Taken</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,6 +103,9 @@
                                 </td>
                                 <td>{{ course.code }} - {{ course.name }}</td>
                                 <td>{{ course.hours }}</td>
+                                <td>
+                                    <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> <!-- New checkbox -->
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -116,6 +124,7 @@
                                 <th>Interest</th>
                                 <th>Course</th>
                                 <th>Credit Hours</th>
+                                <th>Taken</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -129,6 +138,9 @@
                                         </td>
                                         <td>{{ course.code }} - {{ course.name }}</td>
                                         <td>{{ course.hours }}</td>
+                                        <td>
+                                            <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> <!-- New checkbox -->
+                                        </td>
                                     </tr>
                                 {% endif %}
                             {% endfor %}

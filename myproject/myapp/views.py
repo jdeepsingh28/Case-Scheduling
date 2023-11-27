@@ -71,14 +71,26 @@ def create_account_view(request):
 
 def schedule_view(request):
     if request.method == 'POST':
-        # Process form data
-        interest_data = {}  # Dictionary to store selected courses and interest levels
+        # Dictionaries to store course data
+        course_data = {}
 
         for key, value in request.POST.items():
             if 'interest_' in key:
                 course_code = key.split('_')[1]
-                interest_data[course_code] = value
+                # Initialize the course data entry if not present
+                if course_code not in course_data:
+                    course_data[course_code] = {'interest': None, 'taken': False}
+                # Update interest level
+                course_data[course_code]['interest'] = value
+            elif 'taken_' in key:
+                course_code = key.split('_')[1]
+                # Initialize the course data entry if not present
+                if course_code not in course_data:
+                    course_data[course_code] = {'interest': None, 'taken': False}
+                # Update taken status
+                course_data[course_code]['taken'] = (value == 'on')
 
-        # Pass selected_courses to your template
-        return render(request, 'schedule_page.html', {'selected_courses': interest_data})
+        # Pass course_data to your template
+        return render(request, 'schedule_page.html', {'course_data': course_data})
+
     return redirect('home')  # Redirect to home page if not a POST request

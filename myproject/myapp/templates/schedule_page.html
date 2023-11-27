@@ -5,26 +5,28 @@
     <title>Selected Courses</title>
 </head>
 <body>
-{% extends 'base_generic.html' %}
+    {% extends 'base_generic.html' %}
 
-{% block content %}
-    <h1>Your Selected Courses</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Course Code</th>
-                <th>Interest Level</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for course_code, interest_level in selected_courses.items %}
+    {% block content %}
+        <h1>Selected Courses</h1>
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ course_code }}</td>
-                    <td>{{ interest_level }}</td>
+                    <th>Course Code</th>
+                    <th>Interest Level</th>
+                    <th>Taken</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-{% endblock %}
+            </thead>
+            <tbody>
+                {% for code, details in course_data.items %}
+                    <tr>
+                        <td>{{ code }}</td>
+                        <td>{{ details.interest }}</td>
+                        <td>{{ details.taken|yesno:"Yes,No" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endblock %}
 </body>
 </html>
