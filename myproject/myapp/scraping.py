@@ -5,6 +5,35 @@ import requests
 import re
 
 
+def scrape_additional_courses(url, existing_codes):
+    response = requests.get(url)
+    if response.status_code != 200:
+        print(f"Failed to retrieve the webpage. Status Code: {response.status_code}")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    additional_courses = []
+
+    for tag in soup.find_all(['p', 'strong'], class_='courseblocktitle'):
+        course_info = tag.get_text().strip()
+        course_parts = course_info.split(". ")
+        if len(course_parts) < 3:
+            continue
+
+        course_code = course_parts[0]
+        if course_code not in existing_codes:
+            course_name = course_parts[1]
+            hours_text = course_parts[2]
+            hours = int(re.search(r'\d+', hours_text).group()) if re.search(r'\d+', hours_text) else 0
+
+            additional_courses.append({
+                'code': course_code,
+                'name': course_name,
+                'hours': hours
+            })
+
+    return additional_courses
+
 def scrape_course_data(url):
     response = requests.get(url)
     if response.status_code != 200:
@@ -18,6 +47,7 @@ def scrape_course_data(url):
     current_section = None
     current_breadth = None
     last_course_data = None
+    existing_course_codes = set()
 
     elements = soup.find_all(['h3', 'tr', 'div'])
     for tag in elements:
@@ -76,6 +106,17 @@ def scrape_course_data(url):
                     else:
                         result_dict[current_section].append(course_data)
                     last_course_data = course_data
+
+        if last_course_data:
+            existing_course_codes.add(last_course_data['code'])
+
+    additional_courses = scrape_additional_courses("https://bulletin.case.edu/course-descriptions/csds/",
+                                                   existing_course_codes)
+    # Integrate additional_courses into result_dict
+    for course in additional_courses:
+        result_dict['Additional Courses'].append(course)
+
+    return dict(result_dict)
 
     return dict(result_dict)
 
