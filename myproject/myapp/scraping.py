@@ -1,9 +1,14 @@
 import json
+import re
+import requests
 from collections import defaultdict
 from bs4 import BeautifulSoup
-import requests
-import re
+from random import sample
 
+
+import re
+from bs4 import BeautifulSoup
+import requests
 
 def scrape_additional_courses(url, existing_codes):
     response = requests.get(url)
@@ -13,6 +18,7 @@ def scrape_additional_courses(url, existing_codes):
 
     soup = BeautifulSoup(response.text, 'html.parser')
     additional_courses = []
+    unique_course_codes = set(code[:8] for code in existing_codes)  # Create a set of unique course codes
 
     for tag in soup.find_all(['p', 'strong'], class_='courseblocktitle'):
         course_info = tag.get_text().strip()
@@ -21,7 +27,8 @@ def scrape_additional_courses(url, existing_codes):
             continue
 
         course_code = course_parts[0]
-        if course_code not in existing_codes:
+        # Check if the first 8 characters of the course code are not already in the set
+        if course_code[:8] not in unique_course_codes:
             course_name = course_parts[1]
             hours_text = course_parts[2]
             hours = int(re.search(r'\d+', hours_text).group()) if re.search(r'\d+', hours_text) else 0
@@ -31,8 +38,10 @@ def scrape_additional_courses(url, existing_codes):
                 'name': course_name,
                 'hours': hours
             })
+            unique_course_codes.add(course_code[:8])  # Add the first 8 characters of the course code to the set
 
     return additional_courses
+
 
 def scrape_course_data(url):
     response = requests.get(url)
@@ -62,6 +71,7 @@ def scrape_course_data(url):
 
         if 'areaheader' in tag.get('class', []) and 'Breadth Area' in tag.text:
             current_breadth = tag.text.strip()
+            print(current_breadth)
             result_dict[current_section].append({current_breadth: {"courses": [], "requirement": 2}})
             continue
 
@@ -118,9 +128,64 @@ def scrape_course_data(url):
 
     return dict(result_dict)
 
-    return dict(result_dict)
+def create_schedule(data):
+    schedule = []
+
+    # Add all classes from "Computer Science Core Requirement"
+    schedule.extend(c['code'] for c in data['Computer Science Core Requirement'])
+
+    # Add two classes from each "Breadth Area"
+    breadth_requirement = data.get("Computer Science Breadth Requirement", [])
+    for area_dict in breadth_requirement:
+        for area, area_data in area_dict.items():
+            breadth_courses = area_data['courses']
+            selected_courses = sample(breadth_courses, min(len(breadth_courses), 2))
+            schedule.extend(c['code'] for c in selected_courses)
+
+    # Add one class from "Computer Science Secure Computing Requirement"
+    security_courses = data.get("Computer Science Secure Computing Requirement", [])
+    if security_courses:
+        schedule.append(security_courses[0]['code'])
+
+    # Ensure the schedule contains up to 25 classes with the prefix "CSDS"
+    additional_csds_courses = [c['code'].replace('\xa0', ' ') for c in data.get("Additional Courses", []) if c['code'].startswith("CSDS")]
+    available_courses = additional_csds_courses[:49]  # Consider only the first 54 courses so that we do not get to graduate courses
+    courses_to_add = 23 - len(schedule)  # Calculate how many courses to add to get to 20
+
+    if courses_to_add > 0 and available_courses:
+        selected_additional_courses = sample(available_courses, min(len(available_courses), courses_to_add))
+        schedule.extend(course for course in selected_additional_courses if course not in schedule)
+
+    
+    # Add classes from "Mathematics, Science and Engineering Requirement", excluding those that start with "or"
+    for course in data.get("Mathematics, Science and Engineering Requirement", []):
+        course_name = course['name'].lower()
+        course_code = course['code'].replace('\xa0', ' ')
+        if not course_code.startswith('or'):
+            schedule.append(course_code)
+    
+
+    # Add one class from the "Statistics Requirement"
+    statistics_courses = data.get("Statistics Requirement", [])
+    if statistics_courses:
+        schedule.append(statistics_courses[2]['code'])
+   
+    schedule.append("UGER 1")
+    schedule.append("UGER 2")
+    schedule.append("UGER 3")
+    schedule.append("UGER 4")
+    schedule.append("OOM 1")
+    schedule.append("OOM 2")
+    schedule.append("OOM 3")
+    schedule.append("OOM 4")
+    schedule.append("OOM 5")
+    schedule.append("OOM 6")
+    return schedule
+
 
 
 if __name__ == "__main__":
     data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
-    print(json.dumps(data,indent=4))
+    print(data)
+    print(create_schedule(data))
+    #print(json.dumps(data,indent=4))

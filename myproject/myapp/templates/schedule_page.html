@@ -25,8 +25,17 @@
                         <td>{{ details.taken|yesno:"Yes,No" }}</td>
                     </tr>
                 {% endfor %}
+
+                <!-- schedule_page.html -->
             </tbody>
         </table>
+
+        {% for course in schedule %}
+        <div>
+            <p>Course Code: {{ course }}</p>
+            <!-- Add more details as needed -->
+        </div>
+        {% endfor %}
     {% endblock %}
 </body>
 </html>

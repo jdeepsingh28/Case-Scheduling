@@ -8,6 +8,7 @@ from .scraping import scrape_course_data
 from .forms import CreateAccountForm
 from .breadth_reformat import reformat_breadth_requirements
 from collections import defaultdict
+from .scraping import create_schedule
 
 def login_view(request):
     if request.method == "POST":
@@ -90,7 +91,12 @@ def schedule_view(request):
                 # Update taken status
                 course_data[course_code]['taken'] = (value == 'on')
 
-        # Pass course_data to your template
-        return render(request, 'schedule_page.html', {'course_data': course_data})
+        course_data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
+
+        # Generate the schedule using the create_schedule function
+        schedule = create_schedule(course_data)
+
+        # Pass course_data and schedule to your template
+        return render(request, 'schedule_page.html', {'course_data': course_data, 'schedule': schedule})
 
     return redirect('home')  # Redirect to home page if not a POST request
