@@ -72,7 +72,7 @@
                             <td>{{ course.code }} - {{ course.name }}</td>
                             <td>{{ course.hours }}</td>
                             <td>
-                                <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> <!-- New checkbox -->
+                                <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> 
                             </td>
                         </tr>
                     {% endfor %}
@@ -104,7 +104,7 @@
                                 <td>{{ course.code }} - {{ course.name }}</td>
                                 <td>{{ course.hours }}</td>
                                 <td>
-                                    <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> <!-- New checkbox -->
+                                    <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> 
                                 </td>
                             </tr>
                         {% endfor %}
@@ -139,7 +139,7 @@
                                         <td>{{ course.code }} - {{ course.name }}</td>
                                         <td>{{ course.hours }}</td>
                                         <td>
-                                            <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> <!-- New checkbox -->
+                                            <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> 
                                         </td>
                                     </tr>
                                 {% endif %}
@@ -151,6 +151,11 @@
         {% endif %}
 
         <input type="submit" value="Create Schedule" style="padding: 5px 15px; margin-top: 20px;">
+    </form>
+
+    <form method="POST" action="{% url 'random_schedule' %}">
+        {% csrf_token %}
+        <input type="submit" value="Create Random Schedule" style="padding: 5px 15px; margin-top: 20px;">
     </form>
 
 {% endblock %}

@@ -9,6 +9,7 @@ from .forms import CreateAccountForm
 from .breadth_reformat import reformat_breadth_requirements
 from collections import defaultdict
 from .scraping import create_schedule2
+from .scraping import create_random_schedule
 
 def login_view(request):
     if request.method == "POST":
@@ -100,3 +101,18 @@ def schedule_view(request):
         return render(request, 'schedule_page.html', {'course_data': course_data, 'schedule': schedule})
 
     return redirect('home')  # Redirect to home page if not a POST request
+
+from django.shortcuts import render
+
+def random_schedule_view(request):
+    if request.method == 'POST':
+
+        course_data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
+        # Logic to create a random schedule
+        random_schedule = create_random_schedule(course_data)
+
+        # Render a template with the random schedule
+        return render(request, 'random_schedule_template.html', {'schedule': random_schedule})
+    
+    # Redirect or show an error if the request is not POST
+    return redirect('home') 
