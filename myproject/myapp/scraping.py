@@ -1,11 +1,5 @@
-import json
-import re
-import requests
 from collections import defaultdict
-from bs4 import BeautifulSoup
 from random import sample
-
-
 import re
 from bs4 import BeautifulSoup
 import requests
@@ -59,6 +53,7 @@ def scrape_course_data(url):
     existing_course_codes = set()
 
     elements = soup.find_all(['h3', 'tr', 'div'])
+
     for tag in elements:
         if tag.name == 'div' and tag.get('id') == 'planofstudytextcontainer':
             break
@@ -128,6 +123,38 @@ def scrape_course_data(url):
 
     return dict(result_dict)
 
+def create_schedule2(course_data):
+    schedule = []
+
+    # Helper function to sort courses by interest
+    def sort_by_interest(courses):
+        return sorted(courses, key=lambda x: ('interested', 'neutral', 'ignore').index(x.get('interest', 'ignore')))
+
+    # Add all classes from "Computer Science Core Requirement"
+    for course in course_data.get("Computer Science Core Requirement", []):
+        if not course.get('taken', False):
+            schedule.append(course['name'])
+
+    # Add two most interested classes for each "Breadth Area"
+    for section, content in course_data.items():
+        if 'Breadth Area' in section:
+            for area_detail in content:
+                for area, area_data in area_detail.items():
+                    if 'courses' in area_data:
+                        interested_courses = sort_by_interest([c for c in area_data['courses'] if not c.get('taken', False)])[:2]
+                        schedule.extend([c['name'] for c in interested_courses])
+
+    # Add the most interested class from specific sections
+    for section in ["Computer Science Secure Computing Requirement", "Statistics Requirement"]:
+        section_courses = course_data.get(section, [])
+        if section_courses:
+            most_interested_course = sort_by_interest([c for c in section_courses if not c.get('taken', False)])[0]
+            schedule.append(most_interested_course['name'])
+
+    print(schedule)
+    return schedule
+
+
 def create_schedule(data):
     schedule = []
 
@@ -187,5 +214,5 @@ def create_schedule(data):
 if __name__ == "__main__":
     data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
     print(data)
-    print(create_schedule(data))
+    print(create_schedule2(data))
     #print(json.dumps(data,indent=4))
