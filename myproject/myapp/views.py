@@ -10,6 +10,7 @@ from .breadth_reformat import reformat_breadth_requirements
 from collections import defaultdict
 from .scraping import create_schedule2
 from .scraping import create_random_schedule
+import re
 
 def login_view(request):
     if request.method == "POST":
@@ -28,6 +29,7 @@ def home_view(request):
     scraped_data = None
     core_requirements = None
     breadth_requirements = None
+    math_requirements = None
 
     # Define the majors and corresponding URLs
     major_urls = {
@@ -41,6 +43,7 @@ def home_view(request):
         if url:
             scraped_data = scrape_course_data(url)
             core_requirements = scraped_data.get('Computer Science Core Requirement', [])
+            math_requirements = scraped_data.get("Mathematics, Science and Engineering Requirement", [])
             breadth_requirements = defaultdict(list)
             for item in scraped_data.get('Computer Science Breadth Requirement', []):
                 for breadth_area, details in item.items():
@@ -48,7 +51,8 @@ def home_view(request):
                         course['breadth_area'] = breadth_area
                         course['requirement'] = f"Number of classes needed: {details['requirement']}"
                         breadth_requirements[breadth_area].append(course)
-
+            for course in math_requirements:
+                course['show_interest'] = 'or' in course['name'].lower() and re.search(r'or [A-Z]{4}',course['name']) is not None
             # Convert defaultdict to regular dict for template
             breadth_requirements = dict(breadth_requirements)
 
@@ -56,7 +60,8 @@ def home_view(request):
         'majors': major_urls.keys(),
         'scraped_data': scraped_data,
         'core_requirements': core_requirements,
-        'breadth_requirements': breadth_requirements
+        'breadth_requirements': breadth_requirements,
+        'math_requirements': math_requirements
     })
 
 
@@ -73,34 +78,34 @@ def create_account_view(request):
 
 def schedule_view(request):
     if request.method == 'POST':
-        # Dictionaries to store course data
-        course_data = {}
-
-        for key, value in request.POST.items():
-            if 'interest_' in key:
-                course_code = key.split('_')[1]
-                # Initialize the course data entry if not present
-                if course_code not in course_data:
-                    course_data[course_code] = {'interest': None, 'taken': False}
-                # Update interest level
-                course_data[course_code]['interest'] = value
-            elif 'taken_' in key:
-                course_code = key.split('_')[1]
-                # Initialize the course data entry if not present
-                if course_code not in course_data:
-                    course_data[course_code] = {'interest': None, 'taken': False}
-                # Update taken status
-                course_data[course_code]['taken'] = (value == 'on')
+        user_course_selections = {}
 
         course_data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
+        core_requirements = course_data.get('Computer Science Core Requirement', [])
+        breadth_requirements = defaultdict(list)
+        for item in course_data.get('Computer Science Breadth Requirement', []):
+            for breadth_area, details in item.items():
+                for course in details['courses']:
+                    course['breadth_area'] = breadth_area
+                    course['requirement'] = f"Number of classes needed: {details['requirement']}"
+                    breadth_requirements[breadth_area].append(course)
 
-        # Generate the schedule using the create_schedule function
-        schedule = create_schedule2(course_data)
+        for key, value in request.POST.items():
+            if key.startswith('interest_') or key.startswith('taken_'):
+                course_code = key.split('_')[1]
+                if course_code not in user_course_selections:
+                    user_course_selections[course_code] = {'interest': 'neutral', 'taken': False}
 
-        # Pass course_data and schedule to your template
-        return render(request, 'schedule_page.html', {'course_data': course_data, 'schedule': schedule})
+                if key.startswith('interest_'):
+                    user_course_selections[course_code]['interest'] = value
+                elif key.startswith('taken_'):
+                    user_course_selections[course_code]['taken'] = (value == 'on')
 
-    return redirect('home')  # Redirect to home page if not a POST request
+        # Call your create_schedule2 function here with the user_course_selections
+        schedule = create_schedule2(course_data, user_course_selections)
+
+        # Render your schedule page with the generated schedule
+        return render(request, 'schedule_page.html', {'schedule': schedule})
 
 from django.shortcuts import render
 
