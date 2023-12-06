@@ -155,7 +155,7 @@ def create_schedule2(course_data):
     return schedule
 
 
-def create_schedule(data):
+def create_random_schedule(data):
     schedule = []
 
     # Add all classes from "Computer Science Core Requirement"
@@ -183,7 +183,6 @@ def create_schedule(data):
         selected_additional_courses = sample(available_courses, min(len(available_courses), courses_to_add))
         schedule.extend(course for course in selected_additional_courses if course not in schedule)
 
-    
     # Add classes from "Mathematics, Science and Engineering Requirement", excluding those that start with "or"
     for course in data.get("Mathematics, Science and Engineering Requirement", []):
         course_name = course['name'].lower()
@@ -191,7 +190,6 @@ def create_schedule(data):
         if not course_code.startswith('or'):
             schedule.append(course_code)
     
-
     # Add one class from the "Statistics Requirement"
     statistics_courses = data.get("Statistics Requirement", [])
     if statistics_courses:
@@ -208,8 +206,6 @@ def create_schedule(data):
     schedule.append("OOM 5")
     schedule.append("OOM 6")
     return schedule
-
-
 
 if __name__ == "__main__":
     data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
