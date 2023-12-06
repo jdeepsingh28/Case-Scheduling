@@ -113,6 +113,42 @@
             {% endfor %}
         {% endif %}
 
+        <!-- Displaying Mathematics, Science, and Engineering Requirement -->
+        {% if math_requirements %}
+            <h2>Mathematics, Science, and Engineering Requirement</h2>
+            <table class="course-table">
+                <thead>
+                    <tr>
+                        <th>Interest</th>
+                        <th>Course</th>
+                        <th>Credit Hours</th>
+                        <th>Taken</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for course in math_requirements %}
+                    <tr>
+                        {% if course.show_interest %}
+                            <td class="interest-selection">
+                                <input type="radio" name="interest_{{ course.code }}" value="interested"> Interested
+                                <input type="radio" name="interest_{{ course.code }}" value="neutral"> Neutral
+                                <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
+                            </td>
+                        {% else %}
+                            <td></td> <!-- Empty cell for courses not meeting the condition -->
+                        {% endif %}
+                        <td>{{ course.code }} - {{ course.name }}</td>
+                        <td>{{ course.hours }}</td>
+                        <td>
+                            <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+
         <!-- Displaying Other Sections -->
         {% if scraped_data %}
             {% for section, content in scraped_data.items %}

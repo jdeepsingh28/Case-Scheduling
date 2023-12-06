@@ -123,35 +123,38 @@ def scrape_course_data(url):
 
     return dict(result_dict)
 
-def create_schedule2(course_data):
+
+def create_schedule2(course_data, user_course_selections):
     schedule = []
 
-    # Helper function to sort courses by interest
-    def sort_by_interest(courses):
-        return sorted(courses, key=lambda x: ('interested', 'neutral', 'ignore').index(x.get('interest', 'ignore')))
-
-    # Add all classes from "Computer Science Core Requirement"
+    # Add all classes from "Computer Science Core Requirement" that have not been taken
     for course in course_data.get("Computer Science Core Requirement", []):
-        if not course.get('taken', False):
+        if not user_course_selections.get(course['code'], {}).get('taken', False):
             schedule.append(course['name'])
 
-    # Add two most interested classes for each "Breadth Area"
-    for section, content in course_data.items():
-        if 'Breadth Area' in section:
-            for area_detail in content:
-                for area, area_data in area_detail.items():
-                    if 'courses' in area_data:
-                        interested_courses = sort_by_interest([c for c in area_data['courses'] if not c.get('taken', False)])[:2]
-                        schedule.extend([c['name'] for c in interested_courses])
+    # Add two most interested classes from each "Breadth Area" that have not been taken
+    breadth_requirement = course_data.get("Computer Science Breadth Requirement", [])
+    for area_dict in breadth_requirement:
+        for area, area_data in area_dict.items():
+            breadth_courses = [c for c in area_data['courses'] if not user_course_selections.get(c['code'], {}).get('taken', False)]
+            # Sort by interest level
+            breadth_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+            selected_courses = breadth_courses[:2]
+            schedule.extend(c['name'] for c in selected_courses)
 
-    # Add the most interested class from specific sections
-    for section in ["Computer Science Secure Computing Requirement", "Statistics Requirement"]:
-        section_courses = course_data.get(section, [])
-        if section_courses:
-            most_interested_course = sort_by_interest([c for c in section_courses if not c.get('taken', False)])[0]
-            schedule.append(most_interested_course['name'])
+    # Add one most interested class from "Computer Science Secure Computing Requirement" that has not been taken
+    security_courses = [c for c in course_data.get("Computer Science Secure Computing Requirement", []) if not user_course_selections.get(c['code'], {}).get('taken', False)]
+    if security_courses:
+        security_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+        schedule.append(security_courses[0]['name'])
 
-    print(schedule)
+    # Add the most interested class from the "Statistics Requirement" that has not been taken
+    statistics_courses = [c for c in course_data.get("Statistics Requirement", []) if not user_course_selections.get(c['code'], {}).get('taken', False)]
+    if statistics_courses:
+        statistics_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+        schedule.append(statistics_courses[0]['name'])
+
+    # Return the schedule
     return schedule
 
 
@@ -206,6 +209,7 @@ def create_random_schedule(data):
     schedule.append("OOM 5")
     schedule.append("OOM 6")
     return schedule
+
 
 if __name__ == "__main__":
     data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
