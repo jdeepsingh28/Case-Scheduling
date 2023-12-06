@@ -20,8 +20,7 @@ def scrape_additional_courses(url, existing_codes):
         if len(course_parts) < 3:
             continue
 
-        course_code = course_parts[0]
-        # Check if the first 8 characters of the course code are not already in the set
+        course_code = course_parts[0].replace("\xa0", " ")  # Replace \xa0 with a space
         if course_code[:8] not in unique_course_codes:
             course_name = course_parts[1]
             hours_text = course_parts[2]
@@ -32,7 +31,7 @@ def scrape_additional_courses(url, existing_codes):
                 'name': course_name,
                 'hours': hours
             })
-            unique_course_codes.add(course_code[:8])  # Add the first 8 characters of the course code to the set
+            unique_course_codes.add(course_code[:8])
 
     return additional_courses
 
@@ -154,6 +153,21 @@ def create_schedule2(course_data, user_course_selections):
         statistics_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
         schedule.append(statistics_courses[0]['name'])
 
+    math_sci_eng_courses = course_data.get("Mathematics, Science and Engineering Requirement", [])
+    for course in math_sci_eng_courses:
+        if not user_course_selections.get(course['code'], {}).get('taken', False):
+            schedule.append(course['name'])
+
+    # Add top two most interested classes from "List of Approved Technical Electives" that have not been taken
+    technical_electives = course_data.get("List of Approved Technical Electives", [])
+    elective_courses = [course for course in technical_electives if
+                        not user_course_selections.get(course['code'], {}).get('taken', False)]
+    # Sort by interest level
+    elective_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(
+        user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+    selected_electives = elective_courses[:2]
+    schedule.extend(course['name'] for course in selected_electives)
+
     # Return the schedule
     return schedule
 
@@ -175,11 +189,11 @@ def create_random_schedule(data):
     # Add one class from "Computer Science Secure Computing Requirement"
     security_courses = data.get("Computer Science Secure Computing Requirement", [])
     if security_courses:
-        schedule.append(security_courses[0]['code'])
+        schedule.append(security_courses[2]['code'])
 
-    # Ensure the schedule contains up to 25 classes with the prefix "CSDS"
+    # Ensure the schedule contains up to 20 classes with the prefix "CSDS"
     additional_csds_courses = [c['code'].replace('\xa0', ' ') for c in data.get("Additional Courses", []) if c['code'].startswith("CSDS")]
-    available_courses = additional_csds_courses[:49]  # Consider only the first 54 courses so that we do not get to graduate courses
+    available_courses = additional_csds_courses[:22]  # Consider only the first 22 courses so that we do not get to graduate courses
     courses_to_add = 23 - len(schedule)  # Calculate how many courses to add to get to 20
 
     if courses_to_add > 0 and available_courses:

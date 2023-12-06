@@ -113,7 +113,9 @@
             {% endfor %}
         {% endif %}
 
+
         <!-- Displaying Mathematics, Science, and Engineering Requirement -->
+
         {% if math_requirements %}
             <h2>Mathematics, Science, and Engineering Requirement</h2>
             <table class="course-table">
@@ -135,7 +137,7 @@
                                 <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
                             </td>
                         {% else %}
-                            <td></td> <!-- Empty cell for courses not meeting the condition -->
+                            <td></td>
                         {% endif %}
                         <td>{{ course.code }} - {{ course.name }}</td>
                         <td>{{ course.hours }}</td>
@@ -148,11 +150,13 @@
             </table>
         {% endif %}
 
+        <!-- Empty cell for courses not meeting the condition -->
+
 
         <!-- Displaying Other Sections -->
         {% if scraped_data %}
             {% for section, content in scraped_data.items %}
-                {% if section != "Computer Science Core Requirement" and section != "Computer Science Breadth Requirement" %}
+                {% if section != "Computer Science Core Requirement" and section != "Computer Science Breadth Requirement" and section != "Mathematics, Science and Engineering Requirement" %}
                     <h2 style="text-align:left; margin-bottom: 20px;">{{ section }}</h2>
                     <table class="course-table">
                         <thead>
