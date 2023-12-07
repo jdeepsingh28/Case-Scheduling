@@ -26,17 +26,19 @@
 </head>
 <body>
     <div>
-        <h2>Schedule</h2>
+        <h2>Schedule Generated</h2>
         <table class="course-table">
             <thead>
                 <tr>
                     <th>Course</th>
+                    <th>Credit Hours</th>
                 </tr>
             </thead>
             <tbody>
-                {% for course in schedule %}
+                {% for course in schedule%}
                     <tr>
-                        <td>{{ course }}</td>
+                        <td>{{ course.code }} - {{ course.name }}</td>
+                        <td>{{ course.hours }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
