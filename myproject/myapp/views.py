@@ -81,7 +81,6 @@ def schedule_view(request):
         user_course_selections = {}
 
         course_data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
-        core_requirements = course_data.get('Computer Science Core Requirement', [])
         breadth_requirements = defaultdict(list)
         for item in course_data.get('Computer Science Breadth Requirement', []):
             for breadth_area, details in item.items():
