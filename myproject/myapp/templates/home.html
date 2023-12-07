@@ -42,6 +42,11 @@
             margin-right: 10px;
         }
 
+        .interest-selection input[type="radio"] {
+            margin: 0 10px; /* Adjusts the margin on both sides of each radio button */
+        }
+
+
         .interest-selection label {
             margin-right: 15px;
             font-weight: normal;
@@ -62,6 +67,14 @@
             padding: 20px 0;
             font-size: 0.85rem;
             color: #666;
+            margin-top: 30px;
+        }
+
+        /* Flex container for bottom buttons */
+        .bottom-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px; 
             margin-top: 30px;
         }
     </style>
@@ -237,13 +250,21 @@
             {% endfor %}
         {% endif %}
 
-        <input type="submit" value="Create Schedule" style="padding: 5px 15px; margin-top: 20px;">
+        <!--<input type="submit" value="Create Schedule" class = "btn btn-primary mt-3 mb-3" style="padding: 5px 15px; margin-top: 20px;">-->
     </form>
 
-    <form method="POST" action="{% url 'random_schedule' %}">
-        {% csrf_token %}
-        <input type="submit" value="Create Random Schedule" style="padding: 5px 15px; margin-top: 20px;">
-    </form>
+    <!-- Bottom Buttons Container -->
+    <div class="bottom-buttons">
+        <form method="POST" action="{% url 'random_schedule' %}">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-primary mt-3 mb-3" value="Create Random Schedule" class="btn">
+        </form>
+    
+        <form method="POST" action="{% url 'schedule_view' %}">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-primary mt-3 mb-3" value="Create Schedule" class="btn">
+        </form>
+    </div>
 
 {% endblock %}
 

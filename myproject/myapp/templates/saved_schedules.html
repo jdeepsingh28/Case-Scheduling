@@ -1,0 +1,30 @@
+{% extends 'base_generic.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col text-left">
+            <a href="{% url 'home' %}" class="btn btn-primary mt-3 mb-3">
+                Home
+            </a>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Your Saved Schedules</h1>
+    {% for saved_schedule in saved_schedules %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">Schedule saved on {{ saved_schedule.created_at|date:"F d, Y, h:i A" }}</h5>
+            <a href="{% url 'edit_schedule_view' schedule_id=saved_schedule.id %}" class="btn btn-primary">
+                Edit Schedule from {{ saved_schedule.created_at|date:"F d, Y" }}
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-info">
+        No saved schedules.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
