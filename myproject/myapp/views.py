@@ -180,3 +180,4 @@ def convert_to_frontend_format(schedule):
         semester_courses = [{'code': course['code'], 'name': course['name'], 'hours': course['hours']} for course in semester['courses']]
         formatted_schedule.append(semester_courses)
     return formatted_schedule
+

@@ -4,6 +4,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col text-left">
+                <a href="{% url 'home' %}" class="btn btn-primary mt-3 mb-3">
+                    Home
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div class="container-fluid">
         <div class="row">
             <div class="col text-right">
@@ -30,7 +41,7 @@
                         <button type="submit" class="btn btn-primary">Save Schedule</button>
                     </form>
                 {% else %}
-                    <form method="POST" action="{% url 'schedule_view' %}"> <!-- Adjust this URL as needed -->
+                    <form method="POST" action="{% url 'saved_schedules' %}"> <!-- Adjust this URL as needed -->
                         {% csrf_token %}
                         <!-- Hidden field to store the schedule data -->
                         <input type="hidden" name="schedule_data" id="schedule-data">
