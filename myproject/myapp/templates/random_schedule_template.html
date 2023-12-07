@@ -1,50 +1,120 @@
 {% extends 'base_generic.html' %}
 
 {% block content %}
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Selected Courses</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1, h2, h3 {
+            color: #004a7c; /* CWRU Blue */
+            margin-bottom: 20px;
+        }
+
         .course-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .course-table thead tr {
-            background-color: #f2f2f2;
+            background-color: #004a7c; /* CWRU Blue */
+            color: #fff;
         }
 
         .course-table th, .course-table td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
+            padding: 15px;
+            border-bottom: 2px solid #ddd;
             text-align: left;
         }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 30px;
+        }
     </style>
+
 </head>
 <body>
     <div>
         <h2>Schedule Generated</h2>
-        <table class="course-table">
-            <thead>
-                <tr>
-                    <th>Course</th>
-                    <th>Credit Hours</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for course in schedule%}
+        {% for semester_courses in schedule %}
+            <h3>Semester {{ forloop.counter }}</h3>
+            <table class="course-table" id="semester-{{ forloop.counter }}">
+                <thead>
                     <tr>
-                        <td>{{ course.code }} - {{ course.name }}</td>
-                        <td>{{ course.hours }}</td>
+                        <th>Select</th>
+                        <th>Course</th>
+                        <th>Credit Hours</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {% for course in semester_courses %}
+                        <tr>
+                            <td><input type="checkbox" class="course-select" value="{{ course.code }}"></td>
+                            <td>{{ course.code }} - {{ course.name }}</td>
+                            <td>{{ course.hours }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <!-- Add buttons to move selected courses up or down a semester -->
+            <button onclick="moveCourse('up', {{ forloop.counter }})">Move Up</button>
+            <button onclick="moveCourse('down', {{ forloop.counter }})">Move Down</button>
+            <div>
+                Move selected courses to:
+                <select id="target-semester-{{ forloop.counter }}">
+                    {% for _ in schedule %}
+                        {% if forloop.counter != forloop.parentloop.counter %}
+                            <option value="{{ forloop.counter }}">Semester {{ forloop.counter }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+                <button onclick="moveCourses({{ forloop.counter }})">Move</button>
+            </div>
+        {% endfor %}
+
     </div>
+
+    <script>
+        function moveCourse(direction, semesterNumber) {
+            var selectedCourses = $('#semester-' + semesterNumber + ' .course-select:checked').closest('tr');
+
+            if (direction === 'up' && semesterNumber > 1) {
+                $('#semester-' + (semesterNumber - 1) + ' tbody').append(selectedCourses);
+            } else if (direction === 'down') {
+                $('#semester-' + (semesterNumber + 1) + ' tbody').append(selectedCourses);
+            }
+
+            // Optional: Uncheck moved courses
+            selectedCourses.find('.course-select').prop('checked', false);
+        }
+    </script>
+    <script>
+        function moveCourses(currentSemester) {
+            var selectedSemester = $('#target-semester-' + currentSemester).val();
+            var selectedCourses = $('#semester-' + currentSemester + ' .course-select:checked').closest('tr');
+
+            $('#semester-' + selectedSemester + ' tbody').append(selectedCourses);
+
+            // Optional: Uncheck moved courses
+            selectedCourses.find('.course-select').prop('checked', false);
+        }
+    </script>
+
+
 </body>
 </html>
-
 {% endblock %}

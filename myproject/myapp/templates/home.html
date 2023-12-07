@@ -4,31 +4,68 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1, h2 {
+            color: #004a7c; /* CWRU Blue */
+        }
+
         .course-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .course-table thead tr {
-            background-color: #f2f2f2;
+            background-color: #004a7c; /* CWRU Blue */
+            color: #fff;
         }
 
         .course-table th, .course-table td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            text-align: center;
+            padding: 15px;
+            border-bottom: 2px solid #ddd;
+            text-align: left;
         }
 
         .interest-selection {
             display: flex;
             align-items: center;
+            justify-content: flex-start;
         }
 
         .interest-selection input {
-            margin-right: 5px;
+            margin-right: 10px;
+        }
+
+        .interest-selection label {
+            margin-right: 15px;
+            font-weight: normal;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 30px;
         }
     </style>
+
 </head>
 <body>
 
@@ -72,7 +109,7 @@
                             <td>{{ course.code }} - {{ course.name }}</td>
                             <td>{{ course.hours }}</td>
                             <td>
-                                <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> 
+                                <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}>
                             </td>
                         </tr>
                     {% endfor %}
@@ -97,14 +134,14 @@
                         {% for course in courses %}
                             <tr>
                                 <td class="interest-selection">
-                                    <input type="radio" name="interest_{{ course.code }}" value="interested"> Interested
-                                    <input type="radio" name="interest_{{ course.code }}" value="neutral"> Neutral
-                                    <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
+                                    <input type="radio" name="interest_{{ course.code }}" value="interested">Interested
+                                    <input type="radio" name="interest_{{ course.code }}" value="neutral">Neutral
+                                    <input type="radio" name="interest_{{ course.code }}" value="ignore">Ignore
                                 </td>
                                 <td>{{ course.code }} - {{ course.name }}</td>
                                 <td>{{ course.hours }}</td>
                                 <td>
-                                    <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> 
+                                    <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -132,9 +169,9 @@
                     <tr>
                         {% if course.show_interest %}
                             <td class="interest-selection">
-                                <input type="radio" name="interest_{{ course.code }}" value="interested"> Interested
-                                <input type="radio" name="interest_{{ course.code }}" value="neutral"> Neutral
-                                <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
+                                <input type="radio" name="interest_{{ course.code }}" value="interested">Interested
+                                <input type="radio" name="interest_{{ course.code }}" value="neutral">Neutral
+                                <input type="radio" name="interest_{{ course.code }}" value="ignore">Ignore
                             </td>
                         {% else %}
                             <td></td>
@@ -172,14 +209,14 @@
                                 {% if course.code and course.name %}
                                     <tr>
                                         <td class="interest-selection">
-                                            <input type="radio" name="interest_{{ course.code }}" value="interested"> Interested
-                                            <input type="radio" name="interest_{{ course.code }}" value="neutral"> Neutral
-                                            <input type="radio" name="interest_{{ course.code }}" value="ignore"> Ignore
+                                            <input type="radio" name="interest_{{ course.code }}" value="interested">Interested
+                                            <input type="radio" name="interest_{{ course.code }}" value="neutral">Neutral
+                                            <input type="radio" name="interest_{{ course.code }}" value="ignore">Ignore
                                         </td>
                                         <td>{{ course.code }} - {{ course.name }}</td>
                                         <td>{{ course.hours }}</td>
                                         <td>
-                                            <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}> 
+                                            <input type="checkbox" name="taken_{{ course.code }}" {% if course.taken %}checked{% endif %}>
                                         </td>
                                     </tr>
                                 {% endif %}

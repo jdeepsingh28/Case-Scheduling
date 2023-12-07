@@ -103,8 +103,10 @@ def schedule_view(request):
         # Call your create_schedule2 function here with the user_course_selections
         schedule = create_schedule2(course_data, user_course_selections)
 
+        semester_blocks = [schedule[i:i + 5] for i in range(0, len(schedule), 5)]
+
         # Render your schedule page with the generated schedule
-        return render(request, 'schedule_page.html', {'schedule': schedule})
+        return render(request, 'schedule_page.html', {'schedule': semester_blocks})
 
 from django.shortcuts import render
 
@@ -115,8 +117,10 @@ def random_schedule_view(request):
         # Logic to create a random schedule
         random_schedule = create_random_schedule(course_data)
 
+        semester_blocks = [random_schedule[i:i + 5] for i in range(0, len(random_schedule), 5)]
+
         # Render a template with the random schedule
-        return render(request, 'random_schedule_template.html', {'schedule': random_schedule})
+        return render(request, 'random_schedule_template.html', {'schedule': semester_blocks})
     
     # Redirect or show an error if the request is not POST
     return redirect('home') 
