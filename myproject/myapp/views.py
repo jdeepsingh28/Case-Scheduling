@@ -1,16 +1,16 @@
-from django.shortcuts import render, redirect
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.shortcuts import redirect
+from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from .scraping import scrape_course_data
 from .forms import CreateAccountForm
-from .breadth_reformat import reformat_breadth_requirements
 from collections import defaultdict
 from .scraping import create_schedule2
 from .scraping import create_random_schedule
 import re
+from .models import SavedSchedule
+import json
+
 
 def login_view(request):
     if request.method == "POST":
@@ -123,4 +123,60 @@ def random_schedule_view(request):
         return render(request, 'random_schedule_template.html', {'schedule': semester_blocks})
     
     # Redirect or show an error if the request is not POST
-    return redirect('home') 
+    return redirect('home')
+
+@login_required
+def saved_schedules_view(request):
+    if request.method == 'POST':
+        schedule_data = request.POST.get('schedule_data')
+        if schedule_data:
+            schedule = json.loads(schedule_data)
+
+            # Save the schedule to the database
+            saved_schedule = SavedSchedule(user=request.user, schedule=schedule)
+            saved_schedule.save()
+
+            # Redirect to a confirmation page or back to the schedule page
+            return redirect('saved_schedules')
+
+        # If not POST request, show saved schedules
+    saved_schedules = SavedSchedule.objects.filter(user=request.user)
+    return render(request, 'saved_schedules.html', {'saved_schedules': saved_schedules})
+
+
+from django.shortcuts import get_object_or_404
+from .models import SavedSchedule
+from .scraping import scrape_course_data
+from collections import defaultdict
+
+def edit_schedule_view(request, schedule_id):
+    saved_schedule = get_object_or_404(SavedSchedule, pk=schedule_id, user=request.user)
+
+    if request.method == 'POST':
+        # Retrieve the updated schedule data from the POST request
+        schedule_data_json = request.POST.get('schedule_data')
+        if schedule_data_json:
+            # Update the saved schedule with new data
+            schedule_data = json.loads(schedule_data_json)
+            saved_schedule.schedule = schedule_data
+            saved_schedule.save()
+            return redirect('saved_schedules') # Redirect to saved schedules page or other confirmation page
+
+    # Load the existing schedule for editing
+    existing_schedule = saved_schedule.schedule
+    # Convert your existing schedule format to the format expected by your HTML template
+    # For example, if your existing schedule is a list of semesters with courses, you might need to reformat it
+    # to match the structure expected by the front-end. This step depends on how your front-end expects the data.
+    formatted_schedule = convert_to_frontend_format(existing_schedule)
+
+    return render(request, 'schedule_page.html', {'schedule': formatted_schedule, 'schedule_id': schedule_id})
+
+def convert_to_frontend_format(schedule):
+    # Implement this function based on how your front-end expects the data
+    # For instance, if your front-end expects a list of semesters with courses, format the data accordingly
+    formatted_schedule = []
+    # Example conversion logic
+    for semester in schedule:
+        semester_courses = [{'code': course['code'], 'name': course['name'], 'hours': course['hours']} for course in semester['courses']]
+        formatted_schedule.append(semester_courses)
+    return formatted_schedule

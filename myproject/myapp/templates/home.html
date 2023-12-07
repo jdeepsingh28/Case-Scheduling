@@ -74,6 +74,16 @@
 {% block content %}
     <h1 style="text-align:center; margin-bottom: 30px;">Welcome to Course Selection Platform</h1>
 
+     <div class="container-fluid">
+        <div class="row">
+            <div class="col text-right">
+                <a href="{% url 'saved_schedules' %}" class="btn btn-primary mt-3 mb-3">
+                    View Saved Schedules
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Major Selection Form -->
     <form method="POST" action="{% url 'home' %}">
         {% csrf_token %}
