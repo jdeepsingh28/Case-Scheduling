@@ -130,36 +130,84 @@ def create_schedule2(course_data, user_course_selections):
     # Add all classes from "Computer Science Core Requirement" that have not been taken
     for course in course_data.get("Computer Science Core Requirement", []):
         if not user_course_selections.get(course['code'], {}).get('taken', False):
-            schedule.append(course['name'])
+            schedule.append({
+                'code': course['code'],
+                'name': course['name'],
+                'hours': course['hours']
+            })
 
-    # Add two most interested classes from each "Breadth Area" that have not been taken
+    # Add up to two most interested classes from each "Breadth Area" that have not been taken
     breadth_requirement = course_data.get("Computer Science Breadth Requirement", [])
     for area_dict in breadth_requirement:
         for area, area_data in area_dict.items():
-            breadth_courses = [c for c in area_data['courses'] if not user_course_selections.get(c['code'], {}).get('taken', False)]
+            # Filter out courses not taken
+            not_taken_courses = [c for c in area_data['courses'] if
+                                 not user_course_selections.get(c['code'], {}).get('taken', False)]
+
+            # Count the number of courses already taken in this area
+            taken_courses_count = len(area_data['courses']) - len(not_taken_courses)
+
+            # Determine the number of courses to add based on taken courses
+            courses_to_add = max(0, 2 - taken_courses_count)
+            if courses_to_add == 0:
+                continue
+
             # Sort by interest level
-            breadth_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
-            selected_courses = breadth_courses[:2]
-            schedule.extend(c['name'] for c in selected_courses)
+            not_taken_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(
+                user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+            selected_courses = not_taken_courses[:courses_to_add]
+            schedule.extend({
+                'code': c['code'],
+                'name': c['name'],
+                'hours': c['hours']
+            } for c in selected_courses)
 
-    # Add one most interested class from "Computer Science Secure Computing Requirement" that has not been taken
-    security_courses = [c for c in course_data.get("Computer Science Secure Computing Requirement", []) if not user_course_selections.get(c['code'], {}).get('taken', False)]
-    if security_courses:
-        security_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
-        schedule.append(security_courses[0]['name'])
+    # Check if any course in the "Computer Science Secure Computing Requirement" has been taken
+    if any(user_course_selections.get(c['code'], {}).get('taken', False) for c in
+           course_data.get("Computer Science Secure Computing Requirement", [])):
+        # Skip adding a new secure computing course if one has already been taken
+        pass
+    else:
+        # Add one most interested class from "Computer Science Secure Computing Requirement" that has not been taken
+        security_courses = [c for c in course_data.get("Computer Science Secure Computing Requirement", []) if
+                            not user_course_selections.get(c['code'], {}).get('taken', False)]
+        if security_courses:
+            security_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(
+                user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+            schedule.append({
+                'code': security_courses[0]['code'],
+                'name': security_courses[0]['name'],
+                'hours': security_courses[0]['hours']
+            })
 
-    # Add the most interested class from the "Statistics Requirement" that has not been taken
-    statistics_courses = [c for c in course_data.get("Statistics Requirement", []) if not user_course_selections.get(c['code'], {}).get('taken', False)]
-    if statistics_courses:
-        statistics_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
-        schedule.append(statistics_courses[0]['name'])
+    # Check if any course in the "Statistics Requirement" has been taken
+    if any(user_course_selections.get(c['code'], {}).get('taken', False) for c in
+           course_data.get("Statistics Requirement", [])):
+        # Skip adding a new statistics course if one has already been taken
+        pass
+    else:
+        # Add the most interested class from the "Statistics Requirement" that has not been taken
+        statistics_courses = [c for c in course_data.get("Statistics Requirement", []) if
+                              not user_course_selections.get(c['code'], {}).get('taken', False)]
+        if statistics_courses:
+            statistics_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(
+                user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+            schedule.append({
+                'code': statistics_courses[0]['code'],
+                'name': statistics_courses[0]['name'],
+                'hours': statistics_courses[0]['hours']
+            })
 
-   # Mathematics, Science, and Engineering Requirement
+    # Mathematics, Science, and Engineering Requirement
     math_sci_eng_courses = course_data.get("Mathematics, Science and Engineering Requirement", [])
     for course in math_sci_eng_courses:
         # Exclude courses with codes starting with 'or'
         if not course['code'].startswith('or') and not user_course_selections.get(course['code'], {}).get('taken', False):
-            schedule.append(course['name'])
+            schedule.append({
+                'code': course['code'],
+                'name': course['name'],
+                'hours': course['hours']
+            })
 
     # Add top two most interested classes from "List of Approved Technical Electives" that have not been taken
     technical_electives = course_data.get("List of Approved Technical Electives", [])
@@ -169,41 +217,89 @@ def create_schedule2(course_data, user_course_selections):
     elective_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(
         user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
     selected_electives = elective_courses[:2]
-    schedule.extend(course['name'] for course in selected_electives)
+    schedule.extend({
+        'code': c['code'],
+        'name': c['name'],
+        'hours': c['hours']
+    } for c in selected_electives)
 
     #add UGER placeholders and out of major classes for breadth
-    schedule.append("UGER 1")
-    schedule.append("UGER 2")
-    schedule.append("UGER 3")
-    schedule.append("UGER 4")
-    schedule.append("OOM 1")
-    schedule.append("OOM 2")
-    schedule.append("OOM 3")
-    schedule.append("OOM 4")
-    schedule.append("OOM 5")
-    schedule.append("OOM 6")
+    schedule.append({
+        'code': 'UGER 1',
+        'name': 'Academic Inquiry Seminar',
+        'hours': 3
+    })
+    schedule.append({
+        'code': 'OOM 1',
+        'name': 'Out Of Major 1',
+        'hours': 3
+    })
+    schedule.append({
+        'code': 'OOM 2',
+        'name': 'Out Of Major 2',
+        'hours': 3
+    })
+    schedule.append({
+        'code': 'OOM 3',
+        'name': 'Out Of Major 3',
+        'hours': 3
+    })
+    schedule.append({
+        'code': 'OOM 4',
+        'name': 'Out Of Major 4',
+        'hours': 3
+    })
+    schedule.append({
+        'code': 'OOM 5',
+        'name': 'Out Of Major 5',
+        'hours': 3
+    })
+    schedule.append({
+        'code': 'OOM 6',
+        'name': 'Out Of Major 6',
+        'hours': 3
+    })
 
-        # Add courses from "Additional Courses" if total courses are less than 39
+    # Add courses from "Additional Courses" if total courses are less than 39
     if len(schedule) < 39:
-        additional_courses = [c for c in course_data.get("Additional Courses", []) if not user_course_selections.get(c['code'], {}).get('taken', False)]
+        additional_courses = [c for c in course_data.get("Additional Courses", []) if
+                              not user_course_selections.get(c['code'], {}).get('taken', False)]
         # Sort by interest level
-        additional_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+        additional_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(
+            user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
 
         # Separate high interest courses
-        high_interest_courses = [c for c in additional_courses if user_course_selections.get(c['code'], {}).get('interest', 'neutral') == 'interested']
-        other_courses = [c for c in additional_courses if c not in high_interest_courses][:22]  # Take the first 22 from the rest
+        high_interest_courses = [c for c in additional_courses if
+                                 user_course_selections.get(c['code'], {}).get('interest', 'neutral') == 'interested']
+        other_courses = [c for c in additional_courses if c not in high_interest_courses][
+                        :21]  # Take the first 21 from the rest
 
     # Add high interest courses first
     for course in high_interest_courses:
         if len(schedule) < 39:
-            schedule.append(course['name'])
+            schedule.append({
+                'code': course['code'],
+                'name': course['name'],
+                'hours': course['hours']
+            })
         else:
             break
 
     # Randomly select from the other courses if there's still space
     while len(schedule) < 39 and other_courses:
         selected_course = random.choice(other_courses)
-        schedule.append(selected_course['name'])
+
+        # Check if the course is CSDS 296 or CSDS 297 and if the interest level is not 'interested'
+        if selected_course['code'] in ['CSDS 296', 'CSDS 297'] and user_course_selections.get(selected_course['code'],
+                                                                                              {}).get('interest',
+                                                                                                            'neutral') != 'interested':
+            continue  # Skip this course
+
+        schedule.append({
+            'code': selected_course['code'],
+            'name': selected_course['name'],
+            'hours': selected_course['hours']
+        })
         other_courses.remove(selected_course)  # Remove the selected course to avoid duplicates
 
     # Return the schedule
@@ -214,7 +310,11 @@ def create_random_schedule(data):
     schedule = []
 
     # Add all classes from "Computer Science Core Requirement"
-    schedule.extend(c['code'] for c in data['Computer Science Core Requirement'])
+    schedule.extend({
+        'code': c['code'],
+        'name': c['name'],
+        'hours': c['hours']
+    } for c in data['Computer Science Core Requirement'])
 
     # Add two classes from each "Breadth Area"
     breadth_requirement = data.get("Computer Science Breadth Requirement", [])
@@ -222,44 +322,103 @@ def create_random_schedule(data):
         for area, area_data in area_dict.items():
             breadth_courses = area_data['courses']
             selected_courses = sample(breadth_courses, min(len(breadth_courses), 2))
-            schedule.extend(c['code'] for c in selected_courses)
+            schedule.extend({
+                'code': c['code'],
+                'name': c['name'],
+                'hours': c['hours']
+            } for c in selected_courses)
 
     # Add one class from "Computer Science Secure Computing Requirement"
     security_courses = data.get("Computer Science Secure Computing Requirement", [])
     if security_courses:
-        schedule.append(security_courses[2]['code'])
+        schedule.append({
+            'code': security_courses[2]['code'],
+            'name': security_courses[2]['name'],
+            'hours': security_courses[2]['hours']
+        })
 
     # Ensure the schedule contains up to 20 classes with the prefix "CSDS"
-    additional_csds_courses = [c['code'].replace('\xa0', ' ') for c in data.get("Additional Courses", []) if c['code'].startswith("CSDS")]
-    available_courses = additional_csds_courses[:22]  # Consider only the first 22 courses so that we do not get to graduate courses
-    courses_to_add = 23 - len(schedule)  # Calculate how many courses to add to get to 20
+    additional_csds_courses = [
+        {
+            'code': c['code'].replace('\xa0', ' '),
+            'name': c['name'],
+            'hours': c['hours']
+        }
+        for c in data.get("Additional Courses", [])
+        if c['code'].startswith("CSDS")
+    ]
+
+    # Consider only the first 22 courses so that we do not get to graduate courses
+    available_courses = additional_csds_courses[:22]
+
+    # Calculate how many courses to add to get to 20
+    courses_to_add = 20 - len(schedule)
 
     if courses_to_add > 0 and available_courses:
         selected_additional_courses = sample(available_courses, min(len(available_courses), courses_to_add))
-        schedule.extend(course for course in selected_additional_courses if course not in schedule)
+        # Add only the courses that are not already in the schedule
+        for course in selected_additional_courses:
+            if not any(c['code'] == course['code'] for c in schedule):
+                schedule.append(course)
 
     # Add classes from "Mathematics, Science and Engineering Requirement", excluding those that start with "or"
     for course in data.get("Mathematics, Science and Engineering Requirement", []):
-        course_name = course['name'].lower()
+        course_name = course['name']
         course_code = course['code'].replace('\xa0', ' ')
+        course_hours = course['hours']  # Assuming 'hours' is a key in your course data
+
         if not course_code.startswith('or'):
-            schedule.append(course_code)
+            schedule.append({
+                'code': course_code,
+                'name': course_name,
+                'hours': course_hours
+            })
     
     # Add one class from the "Statistics Requirement"
     statistics_courses = data.get("Statistics Requirement", [])
     if statistics_courses:
-        schedule.append(statistics_courses[2]['code'])
-   
-    schedule.append("UGER 1")
-    schedule.append("UGER 2")
-    schedule.append("UGER 3")
-    schedule.append("UGER 4")
-    schedule.append("OOM 1")
-    schedule.append("OOM 2")
-    schedule.append("OOM 3")
-    schedule.append("OOM 4")
-    schedule.append("OOM 5")
-    schedule.append("OOM 6")
+        schedule.append({
+            'code': statistics_courses[2]['code'],
+            'name': statistics_courses[2]['name'],
+            'hours': statistics_courses[2]['hours']
+        })
+
+        # add UGER placeholders and out of major classes for breadth
+        schedule.append({
+            'code': 'UGER 1',
+            'name': 'Academic Inquiry Seminar',
+            'hours': 3
+        })
+        schedule.append({
+            'code': 'OOM 1',
+            'name': 'Out Of Major 1',
+            'hours': 3
+        })
+        schedule.append({
+            'code': 'OOM 2',
+            'name': 'Out Of Major 2',
+            'hours': 3
+        })
+        schedule.append({
+            'code': 'OOM 3',
+            'name': 'Out Of Major 3',
+            'hours': 3
+        })
+        schedule.append({
+            'code': 'OOM 4',
+            'name': 'Out Of Major 4',
+            'hours': 3
+        })
+        schedule.append({
+            'code': 'OOM 5',
+            'name': 'Out Of Major 5',
+            'hours': 3
+        })
+        schedule.append({
+            'code': 'OOM 6',
+            'name': 'Out Of Major 6',
+            'hours': 3
+        })
 
     return schedule
 
