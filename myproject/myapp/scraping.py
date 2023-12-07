@@ -3,6 +3,7 @@ from random import sample
 import re
 from bs4 import BeautifulSoup
 import requests
+import random
 
 def scrape_additional_courses(url, existing_codes):
     response = requests.get(url)
@@ -153,9 +154,11 @@ def create_schedule2(course_data, user_course_selections):
         statistics_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
         schedule.append(statistics_courses[0]['name'])
 
+   # Mathematics, Science, and Engineering Requirement
     math_sci_eng_courses = course_data.get("Mathematics, Science and Engineering Requirement", [])
     for course in math_sci_eng_courses:
-        if not user_course_selections.get(course['code'], {}).get('taken', False):
+        # Exclude courses with codes starting with 'or'
+        if not course['code'].startswith('or') and not user_course_selections.get(course['code'], {}).get('taken', False):
             schedule.append(course['name'])
 
     # Add top two most interested classes from "List of Approved Technical Electives" that have not been taken
@@ -167,6 +170,41 @@ def create_schedule2(course_data, user_course_selections):
         user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
     selected_electives = elective_courses[:2]
     schedule.extend(course['name'] for course in selected_electives)
+
+    #add UGER placeholders and out of major classes for breadth
+    schedule.append("UGER 1")
+    schedule.append("UGER 2")
+    schedule.append("UGER 3")
+    schedule.append("UGER 4")
+    schedule.append("OOM 1")
+    schedule.append("OOM 2")
+    schedule.append("OOM 3")
+    schedule.append("OOM 4")
+    schedule.append("OOM 5")
+    schedule.append("OOM 6")
+
+        # Add courses from "Additional Courses" if total courses are less than 39
+    if len(schedule) < 39:
+        additional_courses = [c for c in course_data.get("Additional Courses", []) if not user_course_selections.get(c['code'], {}).get('taken', False)]
+        # Sort by interest level
+        additional_courses.sort(key=lambda x: ('interested', 'neutral', 'ignore').index(user_course_selections.get(x['code'], {}).get('interest', 'neutral')))
+
+        # Separate high interest courses
+        high_interest_courses = [c for c in additional_courses if user_course_selections.get(c['code'], {}).get('interest', 'neutral') == 'interested']
+        other_courses = [c for c in additional_courses if c not in high_interest_courses][:22]  # Take the first 22 from the rest
+
+    # Add high interest courses first
+    for course in high_interest_courses:
+        if len(schedule) < 39:
+            schedule.append(course['name'])
+        else:
+            break
+
+    # Randomly select from the other courses if there's still space
+    while len(schedule) < 39 and other_courses:
+        selected_course = random.choice(other_courses)
+        schedule.append(selected_course['name'])
+        other_courses.remove(selected_course)  # Remove the selected course to avoid duplicates
 
     # Return the schedule
     return schedule
@@ -222,6 +260,7 @@ def create_random_schedule(data):
     schedule.append("OOM 4")
     schedule.append("OOM 5")
     schedule.append("OOM 6")
+
     return schedule
 
 
