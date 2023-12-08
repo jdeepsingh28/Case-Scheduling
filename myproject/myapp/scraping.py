@@ -5,15 +5,18 @@ from bs4 import BeautifulSoup
 import requests
 import random
 
+
 def scrape_additional_courses(url, existing_codes):
     response = requests.get(url)
     if response.status_code != 200:
-        print(f"Failed to retrieve the webpage. Status Code: {response.status_code}")
+        print(
+            f"Failed to retrieve the webpage. Status Code: {response.status_code}")
         return []
 
     soup = BeautifulSoup(response.text, 'html.parser')
     additional_courses = []
-    unique_course_codes = set(code[:8] for code in existing_codes)  # Create a set of unique course codes
+    # Create a set of unique course codes
+    unique_course_codes = set(code[:8] for code in existing_codes)
 
     for tag in soup.find_all(['p', 'strong'], class_='courseblocktitle'):
         course_info = tag.get_text().strip()
@@ -21,11 +24,13 @@ def scrape_additional_courses(url, existing_codes):
         if len(course_parts) < 3:
             continue
 
-        course_code = course_parts[0].replace("\xa0", " ")  # Replace \xa0 with a space
+        course_code = course_parts[0].replace(
+            "\xa0", " ")  # Replace \xa0 with a space
         if course_code[:8] not in unique_course_codes:
             course_name = course_parts[1]
             hours_text = course_parts[2]
-            hours = int(re.search(r'\d+', hours_text).group()) if re.search(r'\d+', hours_text) else 0
+            hours = int(re.search(r'\d+', hours_text).group()
+                        ) if re.search(r'\d+', hours_text) else 0
 
             additional_courses.append({
                 'code': course_code,
@@ -40,7 +45,8 @@ def scrape_additional_courses(url, existing_codes):
 def scrape_course_data(url):
     response = requests.get(url)
     if response.status_code != 200:
-        print(f"Failed to retrieve the webpage. Status Code: {response.status_code}")
+        print(
+            f"Failed to retrieve the webpage. Status Code: {response.status_code}")
         return None
 
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -67,7 +73,8 @@ def scrape_course_data(url):
         if 'areaheader' in tag.get('class', []) and 'Breadth Area' in tag.text:
             current_breadth = tag.text.strip()
             print(current_breadth)
-            result_dict[current_section].append({current_breadth: {"courses": [], "requirement": 2}})
+            result_dict[current_section].append(
+                {current_breadth: {"courses": [], "requirement": 2}})
             continue
 
         if tag.name == 'tr':
@@ -75,9 +82,11 @@ def scrape_course_data(url):
             if 'orclass' in tag.get('class', []):
                 if last_course_data:
                     codecol = tag.find('td', {'class': 'codecol orclass'})
-                    namecol = tag.find_all('td')[1] if len(tag.find_all('td')) > 1 else None
+                    namecol = tag.find_all('td')[1] if len(
+                        tag.find_all('td')) > 1 else None
 
-                    course_code = codecol.text.strip().replace(u'\xa0', u' ') if codecol else last_course_data['code']
+                    course_code = codecol.text.strip().replace(
+                        u'\xa0', u' ') if codecol else last_course_data['code']
                     course_name = namecol.text.strip() if namecol else ''
                     course_data = {
                         'code': course_code,
@@ -87,13 +96,15 @@ def scrape_course_data(url):
                     }
                     if current_breadth and result_dict[current_section] and current_breadth in \
                             result_dict[current_section][-1]:
-                        result_dict[current_section][-1][current_breadth]["courses"].append(course_data)
+                        result_dict[current_section][-1][current_breadth]["courses"].append(
+                            course_data)
                     else:
                         result_dict[current_section].append(course_data)
                 continue
 
             codecol = tag.find('td', {'class': 'codecol'})
-            namecol = tag.find_all('td')[1] if len(tag.find_all('td')) > 1 else None
+            namecol = tag.find_all('td')[1] if len(
+                tag.find_all('td')) > 1 else None
             hourscol = tag.find('td', {'class': 'hourscol'})
 
             if codecol and namecol:
@@ -107,7 +118,8 @@ def scrape_course_data(url):
                     }
                     if current_breadth and result_dict[current_section] and current_breadth in \
                             result_dict[current_section][-1]:
-                        result_dict[current_section][-1][current_breadth]["courses"].append(course_data)
+                        result_dict[current_section][-1][current_breadth]["courses"].append(
+                            course_data)
                     else:
                         result_dict[current_section].append(course_data)
                     last_course_data = course_data
@@ -137,7 +149,8 @@ def create_schedule2(course_data, user_course_selections):
             })
 
     # Add up to two most interested classes from each "Breadth Area" that have not been taken
-    breadth_requirement = course_data.get("Computer Science Breadth Requirement", [])
+    breadth_requirement = course_data.get(
+        "Computer Science Breadth Requirement", [])
     for area_dict in breadth_requirement:
         for area, area_data in area_dict.items():
             # Filter out courses not taken
@@ -145,7 +158,8 @@ def create_schedule2(course_data, user_course_selections):
                                  not user_course_selections.get(c['code'], {}).get('taken', False)]
 
             # Count the number of courses already taken in this area
-            taken_courses_count = len(area_data['courses']) - len(not_taken_courses)
+            taken_courses_count = len(
+                area_data['courses']) - len(not_taken_courses)
 
             # Determine the number of courses to add based on taken courses
             courses_to_add = max(0, 2 - taken_courses_count)
@@ -199,7 +213,8 @@ def create_schedule2(course_data, user_course_selections):
             })
 
     # Mathematics, Science, and Engineering Requirement
-    math_sci_eng_courses = course_data.get("Mathematics, Science and Engineering Requirement", [])
+    math_sci_eng_courses = course_data.get(
+        "Mathematics, Science and Engineering Requirement", [])
     for course in math_sci_eng_courses:
         # Exclude courses with codes starting with 'or'
         if not course['code'].startswith('or') and not user_course_selections.get(course['code'], {}).get('taken', False):
@@ -210,7 +225,8 @@ def create_schedule2(course_data, user_course_selections):
             })
 
     # Add top two most interested classes from "List of Approved Technical Electives" that have not been taken
-    technical_electives = course_data.get("List of Approved Technical Electives", [])
+    technical_electives = course_data.get(
+        "List of Approved Technical Electives", [])
     elective_courses = [course for course in technical_electives if
                         not user_course_selections.get(course['code'], {}).get('taken', False)]
     # Sort by interest level
@@ -223,7 +239,7 @@ def create_schedule2(course_data, user_course_selections):
         'hours': c['hours']
     } for c in selected_electives)
 
-    #add UGER placeholders and out of major classes for breadth
+    # add UGER placeholders and out of major classes for breadth
     schedule.append({
         'code': 'UGER 1',
         'name': 'Academic Inquiry Seminar',
@@ -272,7 +288,7 @@ def create_schedule2(course_data, user_course_selections):
         high_interest_courses = [c for c in additional_courses if
                                  user_course_selections.get(c['code'], {}).get('interest', 'neutral') == 'interested']
         other_courses = [c for c in additional_courses if c not in high_interest_courses][
-                        :21]  # Take the first 21 from the rest
+            :21]  # Take the first 21 from the rest
 
     # Add high interest courses first
     for course in high_interest_courses:
@@ -292,7 +308,7 @@ def create_schedule2(course_data, user_course_selections):
         # Check if the course is CSDS 296 or CSDS 297 and if the interest level is not 'interested'
         if selected_course['code'] in ['CSDS 296', 'CSDS 297'] and user_course_selections.get(selected_course['code'],
                                                                                               {}).get('interest',
-                                                                                                            'neutral') != 'interested':
+                                                                                                      'neutral') != 'interested':
             continue  # Skip this course
 
         schedule.append({
@@ -300,7 +316,8 @@ def create_schedule2(course_data, user_course_selections):
             'name': selected_course['name'],
             'hours': selected_course['hours']
         })
-        other_courses.remove(selected_course)  # Remove the selected course to avoid duplicates
+        # Remove the selected course to avoid duplicates
+        other_courses.remove(selected_course)
 
     # Return the schedule
     return schedule
@@ -321,7 +338,8 @@ def create_random_schedule(data):
     for area_dict in breadth_requirement:
         for area, area_data in area_dict.items():
             breadth_courses = area_data['courses']
-            selected_courses = sample(breadth_courses, min(len(breadth_courses), 2))
+            selected_courses = sample(
+                breadth_courses, min(len(breadth_courses), 2))
             schedule.extend({
                 'code': c['code'],
                 'name': c['name'],
@@ -329,7 +347,8 @@ def create_random_schedule(data):
             } for c in selected_courses)
 
     # Add one class from "Computer Science Secure Computing Requirement"
-    security_courses = data.get("Computer Science Secure Computing Requirement", [])
+    security_courses = data.get(
+        "Computer Science Secure Computing Requirement", [])
     if security_courses:
         schedule.append({
             'code': security_courses[2]['code'],
@@ -352,10 +371,11 @@ def create_random_schedule(data):
     available_courses = additional_csds_courses[:22]
 
     # Calculate how many courses to add to get to 20
-    courses_to_add = 20 - len(schedule)
+    courses_to_add = 24 - len(schedule)
 
     if courses_to_add > 0 and available_courses:
-        selected_additional_courses = sample(available_courses, min(len(available_courses), courses_to_add))
+        selected_additional_courses = sample(
+            available_courses, min(len(available_courses), courses_to_add))
         # Add only the courses that are not already in the schedule
         for course in selected_additional_courses:
             if not any(c['code'] == course['code'] for c in schedule):
@@ -365,7 +385,8 @@ def create_random_schedule(data):
     for course in data.get("Mathematics, Science and Engineering Requirement", []):
         course_name = course['name']
         course_code = course['code'].replace('\xa0', ' ')
-        course_hours = course['hours']  # Assuming 'hours' is a key in your course data
+        # Assuming 'hours' is a key in your course data
+        course_hours = course['hours']
 
         if not course_code.startswith('or'):
             schedule.append({
@@ -373,7 +394,7 @@ def create_random_schedule(data):
                 'name': course_name,
                 'hours': course_hours
             })
-    
+
     # Add one class from the "Statistics Requirement"
     statistics_courses = data.get("Statistics Requirement", [])
     if statistics_courses:
@@ -424,7 +445,8 @@ def create_random_schedule(data):
 
 
 if __name__ == "__main__":
-    data = scrape_course_data("https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
+    data = scrape_course_data(
+        "https://bulletin.case.edu/engineering/computer-data-sciences/computer-science-bs/#programrequirementstext")
     print(data)
     print(create_schedule2(data))
-    #print(json.dumps(data,indent=4))
+    # print(json.dumps(data,indent=4))
